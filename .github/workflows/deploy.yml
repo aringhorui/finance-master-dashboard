@@ -18,14 +18,27 @@ concurrency:
 
 jobs:
 
+  # ==========================================================
+  # BUILD
+  # ==========================================================
+
   build:
 
     runs-on: ubuntu-latest
 
     steps:
 
+      # ------------------------------------------------------
+      # Checkout
+      # ------------------------------------------------------
+
       - name: Checkout
         uses: actions/checkout@v6
+
+
+      # ------------------------------------------------------
+      # Setup Node
+      # ------------------------------------------------------
 
       - name: Setup Node
         uses: actions/setup-node@v6
@@ -33,19 +46,67 @@ jobs:
           node-version: lts/*
           cache: npm
 
+
+      # ------------------------------------------------------
+      # Install dependencies
+      # ------------------------------------------------------
+
       - name: Install dependencies
         run: npm ci
 
+
+      # ------------------------------------------------------
+      # Build Vite application
+      # ------------------------------------------------------
+
       - name: Build Vite application
-        run: npm run build
+
+        env:
+          # -----------------------------------------------
+          # FinanceMaster configuration
+          # -----------------------------------------------
+
+          VITE_SALARY: ${{ vars.VITE_SALARY }}
+          VITE_DATA_URL: ${{ vars.VITE_DATA_URL }}
+          VITE_STALE_DATA_MINUTES: ${{ vars.VITE_STALE_DATA_MINUTES }}
+
+          # -----------------------------------------------
+          # Gemini
+          #
+          # WARNING:
+          # VITE_GEMINI_API_KEY will be embedded into
+          # the public Vite JavaScript bundle.
+          #
+          # Do NOT use this for production.
+          # -----------------------------------------------
+
+          VITE_GEMINI_API_KEY: ${{ secrets.VITE_GEMINI_API_KEY }}
+
+        run: |
+          npm run build
+
+
+      # ------------------------------------------------------
+      # Setup GitHub Pages
+      # ------------------------------------------------------
 
       - name: Setup GitHub Pages
         uses: actions/configure-pages@v6
+
+
+      # ------------------------------------------------------
+      # Upload build
+      # ------------------------------------------------------
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v5
         with:
           path: ./dist
+
+
+  # ==========================================================
+  # DEPLOY
+  # ==========================================================
 
   deploy:
 
@@ -58,6 +119,10 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
+
+      # ------------------------------------------------------
+      # Deploy
+      # ------------------------------------------------------
 
       - name: Deploy to GitHub Pages
         id: deployment
