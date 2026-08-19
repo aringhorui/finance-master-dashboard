@@ -1,0 +1,96 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #0a0a0a;
+    background-image: radial-gradient(rgba(251, 146, 60, 0.03) 1px, transparent 1px);
+    background-size: 24px 24px;
+    @apply text-neutral-100 antialiased;
+  }
+
+  ::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-white/10 rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-white/20;
+  }
+
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.6);
+  }
+
+  select,
+  input[type="text"],
+  input[type="date"] {
+    @apply bg-white/[0.04] border border-white/[0.08] text-neutral-200 rounded-xl text-sm transition-colors;
+  }
+  select {
+    background-color: rgba(18, 18, 18, 0.95);
+    color: #e5e5e5;
+  }
+  select option {
+    background-color: #1a1a1a;
+    color: #e5e5e5;
+    padding: 8px 12px;
+  }
+  select option:hover,
+  select option:checked {
+    background-color: #2a2a2a;
+  }
+  select:focus,
+  input:focus {
+    @apply outline-none ring-1 ring-orange-500/50 border-orange-500/30;
+  }
+}
+
+@layer components {
+  .card {
+    background: rgba(18, 18, 18, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    @apply rounded-2xl backdrop-blur-sm transition-all duration-200;
+  }
+  .card:hover {
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+  .card-glow:hover {
+    box-shadow: 0 4px 24px -6px rgba(249, 115, 22, 0.15);
+    border-color: rgba(249, 115, 22, 0.25);
+  }
+
+  .badge {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium;
+  }
+
+  .section-title {
+    @apply text-[15px] font-semibold text-neutral-200 tracking-tight;
+  }
+
+  .stat-value {
+    @apply text-2xl font-bold tracking-tight tabular-nums;
+  }
+
+  .recharts-default-tooltip {
+    @apply !bg-neutral-900/95 !border-white/10 !rounded-xl !shadow-2xl !backdrop-blur-sm;
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  @apply rounded-xl;
+}
