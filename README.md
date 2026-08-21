@@ -37,7 +37,7 @@ src/
 On page load the dashboard fetches:
 
 ```
-https://raw.githubusercontent.com/aringhorui/finance-master-data/main/data/current.json
+https://financemaster-data.aringhorui.workers.dev/current.json)
 ```
 
 All calculations happen in the browser. No API keys or secrets are used.
