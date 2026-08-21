@@ -1,7 +1,7 @@
 // All configurable values are read from .env file.
 // See .env.example for available variables.
 
-export const SALARY = Number(import.meta.env.VITE_SALARY) || 48000;
+export const SALARY = Number(import.meta.env.VITE_SALARY) || 50361;
 
 export const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
 
