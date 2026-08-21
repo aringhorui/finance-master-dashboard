@@ -6,7 +6,7 @@ export const SALARY = Number(import.meta.env.VITE_SALARY) || 48000;
 export const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
 
 export const DATA_URL = import.meta.env.VITE_DATA_URL ||
-  'https://raw.githubusercontent.com/aringhorui/finance-master-data/main/data/current.json';
+  'https://financemaster-data.aringhorui.workers.dev/current.json';
 
 export const STALE_DATA_MINUTES = Number(import.meta.env.VITE_STALE_DATA_MINUTES) || 15;
 export const ITEMS_PER_PAGE = 15;
