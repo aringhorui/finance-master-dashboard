@@ -11,6 +11,7 @@ import { FinancialHealth } from './components/FinancialHealth';
 import { SunburstChart } from './components/SunburstChart';
 import { SpendingHeatmap } from './components/SpendingHeatmap';
 import { CategoryAnalysis } from './components/CategoryAnalysis';
+import { SubcategoryBudget } from './components/SubcategoryBudget';
 import { TopExpenses } from './components/TopExpenses';
 import { PaymentMethodBreakdown } from './components/PaymentMethodBreakdown';
 import { BankAccountBreakdown } from './components/BankAccountBreakdown';
@@ -21,9 +22,24 @@ import { DataStatus } from './components/DataStatus';
 import { Chatbot } from './components/Chatbot';
 import { LoadingSkeleton } from './components/LoadingSkeleton';
 import { ErrorState } from './components/ErrorState';
+import { MobileNav } from './components/MobileNav';
+
+const SALARY_STORAGE_KEY = 'fm_salary';
+function loadSalary() {
+  try {
+    const v = localStorage.getItem(SALARY_STORAGE_KEY);
+    return v ? Number(v) : SALARY;
+  } catch { return SALARY; }
+}
 
 function App() {
   const { data, loading, error, refresh } = useFinanceData();
+  const [salary, setSalaryState] = useState(loadSalary);
+
+  const setSalary = (v) => {
+    setSalaryState(v);
+    localStorage.setItem(SALARY_STORAGE_KEY, String(v));
+  };
 
   const [filters, setFilters] = useState({
     dateRange: { start: null, end: null },
@@ -67,7 +83,7 @@ function App() {
   const salaryCycle = data?.salary_cycle;
   const totalSpent = useMemo(() => calc.calculateTotalSpent(filteredExpenses), [filteredExpenses]);
   const avgDailySpending = useMemo(() => salaryCycle ? calc.calculateAverageDailySpending(filteredExpenses, salaryCycle.start) : 0, [filteredExpenses, salaryCycle]);
-  const remainingDailyBudget = useMemo(() => salaryCycle ? calc.calculateRemainingDailyBudget(SALARY, totalSpent, salaryCycle.end) : 0, [totalSpent, salaryCycle]);
+  const remainingDailyBudget = useMemo(() => salaryCycle ? calc.calculateRemainingDailyBudget(salary, totalSpent, salaryCycle.end) : 0, [salary, totalSpent, salaryCycle]);
   const dailySpending = useMemo(() => salaryCycle ? calc.calculateDailySpending(filteredExpenses, salaryCycle.start, salaryCycle.end) : [], [filteredExpenses, salaryCycle]);
   const categorySpending = useMemo(() => calc.calculateCategorySpending(filteredExpenses), [filteredExpenses]);
   const subCategorySpending = useMemo(() => calc.calculateSubCategorySpending(filteredExpenses), [filteredExpenses]);
@@ -79,38 +95,46 @@ function App() {
   const biggestCategory = useMemo(() => calc.findBiggestCategory(filteredExpenses), [filteredExpenses]);
   const mostUsedPaymentMethod = useMemo(() => calc.findMostUsedPaymentMethod(filteredExpenses), [filteredExpenses]);
   const topExpenses = useMemo(() => calc.getTopExpenses(filteredExpenses, 10), [filteredExpenses]);
-  const insights = useMemo(() => generateInsights(filteredExpenses, salaryCycle, SALARY), [filteredExpenses, salaryCycle]);
+  const insights = useMemo(() => generateInsights(filteredExpenses, salaryCycle, salary), [filteredExpenses, salaryCycle, salary]);
 
   if (error && !data) return <ErrorState message={error} onRetry={refresh} />;
   if (loading && !data) return <LoadingSkeleton />;
 
   return (
     <div className="min-h-screen text-neutral-100">
-      <Header salaryCycle={salaryCycle} lastSync={data?.last_sync} loading={loading} onRefresh={refresh} />
+      <Header salaryCycle={salaryCycle} lastSync={data?.last_sync} loading={loading} onRefresh={refresh} salary={salary} onSalaryChange={setSalary} />
 
       <main className="max-w-[1400px] mx-auto px-3 sm:px-6 py-4 sm:py-5 space-y-3 sm:space-y-4">
         <FilterBar filters={filters} onChange={setFilters} options={filterOptions} />
 
-        <KPIGrid
-          totalSpent={totalSpent}
-          moneyLeft={SALARY - totalSpent}
-          avgDailySpending={avgDailySpending}
-          remainingDailyBudget={remainingDailyBudget}
-          transactionCount={filteredExpenses.length}
-          biggestExpense={biggestExpense}
-          biggestCategory={biggestCategory}
-          mostUsedPaymentMethod={mostUsedPaymentMethod}
-        />
+        <div id="kpis">
+          <KPIGrid
+            totalSpent={totalSpent}
+            moneyLeft={salary - totalSpent}
+            avgDailySpending={avgDailySpending}
+            remainingDailyBudget={remainingDailyBudget}
+            transactionCount={filteredExpenses.length}
+            biggestExpense={biggestExpense}
+            biggestCategory={biggestCategory}
+            mostUsedPaymentMethod={mostUsedPaymentMethod}
+          />
+        </div>
 
-        <FinancialHealth salary={SALARY} spent={totalSpent} expenses={filteredExpenses} salaryCycle={salaryCycle} />
+        <div id="health">
+          <FinancialHealth salary={salary} spent={totalSpent} expenses={filteredExpenses} salaryCycle={salaryCycle} />
+        </div>
 
         <SpendingHeatmap data={dailySpending} salaryCycle={salaryCycle} />
 
         <SunburstChart hierarchy={categoryHierarchy} totalSpent={totalSpent} />
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
+        <div id="categories" className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
           <CategoryAnalysis categories={categorySpending} subCategories={subCategorySpending} totalSpent={totalSpent} />
           <WeekdaySpending data={weekdaySpending} />
+        </div>
+
+        <div id="budgets">
+          <SubcategoryBudget subCategories={subCategorySpending} expenses={filteredExpenses} />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
@@ -120,17 +144,21 @@ function App() {
         </div>
 
         <Insights insights={insights} />
-        <TransactionTable expenses={filteredExpenses} />
+        <div id="transactions">
+          <TransactionTable expenses={filteredExpenses} />
+        </div>
       </main>
 
-      <DataStatus lastSync={data?.last_sync} />
-      <Chatbot expenses={filteredExpenses} salary={SALARY} />
+      <DataStatus lastSync={data?.last_sync} onRefresh={refresh} />
+      <Chatbot expenses={filteredExpenses} salary={salary} />
 
-      <footer className="border-t border-white/[0.04] mt-6">
+      <footer className="border-t border-white/[0.04] mt-6 pb-16 sm:pb-0">
         <div className="max-w-[1400px] mx-auto px-3 sm:px-6 py-4 text-center text-xs text-neutral-600">
           FinanceMaster Dashboard &mdash; All data processed locally in your browser &middot; No data leaves your device
         </div>
       </footer>
+
+      <MobileNav />
     </div>
   );
 }
