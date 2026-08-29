@@ -36,10 +36,10 @@ export function DataStatus({ lastSync, onRefresh }) {
     <div className="fixed bottom-[4.5rem] sm:bottom-4 right-4 z-20">
       <div className="flex flex-col items-end gap-1.5">
         {expanded && (
-          <div className="flex items-center gap-1.5 animate-in fade-in slide-in-from-bottom-2">
+          <div className="flex flex-col sm:flex-row items-end sm:items-center gap-1.5">
             <button
               onClick={onRefresh}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium bg-neutral-900/90 border border-white/[0.08] text-neutral-300 hover:text-orange-300 hover:border-orange-500/20 backdrop-blur-xl shadow-lg transition-colors"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium bg-neutral-900 border border-white/[0.08] text-neutral-300 hover:text-orange-300 hover:border-orange-500/20 shadow-lg transition-colors"
             >
               <RefreshCw size={12} />
               Refresh Data
@@ -48,7 +48,7 @@ export function DataStatus({ lastSync, onRefresh }) {
               href={SYNC_WORKFLOW_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium bg-orange-500/10 border border-orange-500/20 text-orange-300 hover:bg-orange-500/20 backdrop-blur-xl shadow-lg transition-colors"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium bg-orange-950 border border-orange-500/20 text-orange-300 hover:bg-orange-900 shadow-lg transition-colors"
             >
               <ExternalLink size={12} />
               Sync Now
@@ -56,10 +56,10 @@ export function DataStatus({ lastSync, onRefresh }) {
             {notifSupported() && (
               <button
                 onClick={toggleNotif}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium border backdrop-blur-xl shadow-lg transition-colors ${
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium border shadow-lg transition-colors ${
                   notifOn()
-                    ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-300 hover:bg-emerald-500/20'
-                    : 'bg-neutral-900/90 border-white/[0.08] text-neutral-400 hover:text-neutral-200'
+                    ? 'bg-emerald-950 border-emerald-500/20 text-emerald-300 hover:bg-emerald-900'
+                    : 'bg-neutral-900 border-white/[0.08] text-neutral-400 hover:text-neutral-200'
                 }`}
               >
                 {notifOn() ? <Bell size={12} /> : <BellOff size={12} />}
@@ -69,10 +69,10 @@ export function DataStatus({ lastSync, onRefresh }) {
             {getSettingsURL() && (
               <button
                 onClick={handleCopySettings}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium border backdrop-blur-xl shadow-lg transition-colors ${
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium border shadow-lg transition-colors ${
                   copied
-                    ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-300'
-                    : 'bg-neutral-900/90 border-white/[0.08] text-neutral-400 hover:text-neutral-200'
+                    ? 'bg-emerald-950 border-emerald-500/20 text-emerald-300'
+                    : 'bg-neutral-900 border-white/[0.08] text-neutral-400 hover:text-neutral-200'
                 }`}
               >
                 {copied ? <Check size={12} /> : <Link2 size={12} />}
@@ -83,10 +83,10 @@ export function DataStatus({ lastSync, onRefresh }) {
         )}
         <button
           onClick={() => setExpanded((v) => !v)}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs border backdrop-blur-xl shadow-lg transition-colors ${
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs border shadow-lg transition-colors ${
             stale
-              ? 'bg-orange-950/60 border-orange-800/30 text-orange-300'
-              : 'bg-neutral-900/80 border-white/[0.06] text-neutral-400'
+              ? 'bg-orange-950 border-orange-800/30 text-orange-300'
+              : 'bg-neutral-900 border-white/[0.06] text-neutral-400'
           }`}
         >
           <span className={`w-1.5 h-1.5 rounded-full ${stale ? 'bg-orange-400 animate-pulse' : 'bg-emerald-400'}`} />
