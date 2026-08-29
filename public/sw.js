@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fm-v1';
+const CACHE_NAME = 'fm-v2';
 const STATIC_ASSETS = [
   './',
   './index.html',
@@ -25,8 +25,16 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
 
+  if (url.origin !== self.location.origin) return;
+
+  if (e.request.mode === 'navigate') {
+    e.respondWith(
+      fetch(e.request).catch(() => caches.match('./index.html'))
+    );
+    return;
+  }
+
   if (url.pathname.includes('current.json') || url.hostname.includes('generativelanguage')) {
-    e.respondWith(fetch(e.request));
     return;
   }
 
