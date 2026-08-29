@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { RefreshCw, Activity, Edit3, Check, X } from 'lucide-react';
+import { Activity, Edit3, Check, X } from 'lucide-react';
 import { formatCycleDate, formatCurrency, getRelativeTime } from '../utils/formatters';
 
-export function Header({ salaryCycle, lastSync, loading, onRefresh, salary, onSalaryChange }) {
+export function Header({ salaryCycle, lastSync, salary, onSalaryChange }) {
   const [editingSalary, setEditingSalary] = useState(false);
   const [salaryInput, setSalaryInput] = useState('');
 
@@ -83,15 +83,6 @@ export function Header({ salaryCycle, lastSync, loading, onRefresh, salary, onSa
               Synced <span className="text-neutral-400">{getRelativeTime(lastSync)}</span>
             </span>
           )}
-          <button
-            onClick={onRefresh}
-            disabled={loading}
-            aria-label="Refresh data"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/20 text-orange-300 text-[13px] font-medium transition-all disabled:opacity-40"
-          >
-            <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
-            {loading ? 'Syncing' : 'Refresh'}
-          </button>
         </div>
       </div>
     </header>

@@ -12,6 +12,11 @@ import { SunburstChart } from './components/SunburstChart';
 import { SpendingHeatmap } from './components/SpendingHeatmap';
 import { CategoryAnalysis } from './components/CategoryAnalysis';
 import { SubcategoryBudget } from './components/SubcategoryBudget';
+import { SmallPurchases } from './components/SmallPurchases';
+import { HabitTracker } from './components/HabitTracker';
+import { RevealSection } from './components/RevealSection';
+import { SpendingTrend } from './components/SpendingTrend';
+import { BudgetPace } from './components/BudgetPace';
 import { TopExpenses } from './components/TopExpenses';
 import { PaymentMethodBreakdown } from './components/PaymentMethodBreakdown';
 import { BankAccountBreakdown } from './components/BankAccountBreakdown';
@@ -85,6 +90,7 @@ function App() {
   const avgDailySpending = useMemo(() => salaryCycle ? calc.calculateAverageDailySpending(filteredExpenses, salaryCycle.start) : 0, [filteredExpenses, salaryCycle]);
   const remainingDailyBudget = useMemo(() => salaryCycle ? calc.calculateRemainingDailyBudget(salary, totalSpent, salaryCycle.end) : 0, [salary, totalSpent, salaryCycle]);
   const dailySpending = useMemo(() => salaryCycle ? calc.calculateDailySpending(filteredExpenses, salaryCycle.start, salaryCycle.end) : [], [filteredExpenses, salaryCycle]);
+  const cumulativeSpending = useMemo(() => salaryCycle ? calc.calculateCumulativeSpending(filteredExpenses, salaryCycle.start, salaryCycle.end, salary) : [], [filteredExpenses, salaryCycle, salary]);
   const categorySpending = useMemo(() => calc.calculateCategorySpending(filteredExpenses), [filteredExpenses]);
   const subCategorySpending = useMemo(() => calc.calculateSubCategorySpending(filteredExpenses), [filteredExpenses]);
   const paymentMethodSpending = useMemo(() => calc.calculatePaymentMethodSpending(filteredExpenses), [filteredExpenses]);
@@ -102,14 +108,15 @@ function App() {
 
   return (
     <div className="min-h-screen text-neutral-100">
-      <Header salaryCycle={salaryCycle} lastSync={data?.last_sync} loading={loading} onRefresh={refresh} salary={salary} onSalaryChange={setSalary} />
+      <Header salaryCycle={salaryCycle} lastSync={data?.last_sync} salary={salary} onSalaryChange={setSalary} />
 
       <main className="max-w-[1400px] mx-auto px-3 sm:px-6 py-4 sm:py-5 space-y-3 sm:space-y-4">
         <div className="hidden sm:block">
           <FilterBar filters={filters} onChange={setFilters} options={filterOptions} />
         </div>
 
-        <div id="kpis">
+        {/* 1. KPIs — instant overview */}
+        <RevealSection id="kpis">
           <KPIGrid
             totalSpent={totalSpent}
             moneyLeft={salary - totalSpent}
@@ -120,38 +127,65 @@ function App() {
             biggestCategory={biggestCategory}
             mostUsedPaymentMethod={mostUsedPaymentMethod}
           />
-        </div>
+        </RevealSection>
 
-        <div id="health">
+        {/* 2. Financial Health — salary vs spent */}
+        <RevealSection id="health">
           <FinancialHealth salary={salary} spent={totalSpent} expenses={filteredExpenses} salaryCycle={salaryCycle} />
+        </RevealSection>
+
+        {/* 3. Behavioral insights — actionable spending patterns */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
+          <SmallPurchases expenses={filteredExpenses} salaryCycle={salaryCycle} />
+          <HabitTracker expenses={filteredExpenses} salaryCycle={salaryCycle} />
         </div>
 
-        <SpendingHeatmap data={dailySpending} salaryCycle={salaryCycle} />
+        {/* 4. Pace & Trend — how spending tracks over time */}
+        <RevealSection className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
+          <BudgetPace data={cumulativeSpending} salary={salary} />
+          <SpendingTrend data={dailySpending} />
+        </RevealSection>
 
-        <SunburstChart hierarchy={categoryHierarchy} totalSpent={totalSpent} />
+        {/* 5. Budget tracking */}
+        <RevealSection id="budgets">
+          <SubcategoryBudget subCategories={subCategorySpending} expenses={filteredExpenses} />
+        </RevealSection>
 
-        <div id="categories" className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
+        {/* 6. Spending heatmap */}
+        <RevealSection>
+          <SpendingHeatmap data={dailySpending} salaryCycle={salaryCycle} />
+        </RevealSection>
+
+        {/* 7. Category breakdowns */}
+        <RevealSection id="categories" className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
           <CategoryAnalysis categories={categorySpending} subCategories={subCategorySpending} totalSpent={totalSpent} />
           <WeekdaySpending data={weekdaySpending} />
-        </div>
+        </RevealSection>
 
-        <div id="budgets">
-          <SubcategoryBudget subCategories={subCategorySpending} expenses={filteredExpenses} />
-        </div>
+        {/* 8. Hierarchy visualization */}
+        <RevealSection>
+          <SunburstChart hierarchy={categoryHierarchy} totalSpent={totalSpent} />
+        </RevealSection>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
+        {/* 9. Reference breakdowns */}
+        <RevealSection className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
           <PaymentMethodBreakdown data={paymentMethodSpending} totalSpent={totalSpent} />
           <BankAccountBreakdown data={bankAccountSpending} totalSpent={totalSpent} />
           <TopExpenses expenses={topExpenses} />
-        </div>
+        </RevealSection>
 
-        <Insights insights={insights} />
-        <div id="transactions" className="space-y-3 sm:space-y-4">
+        {/* 10. AI insights */}
+        <RevealSection>
+          <Insights insights={insights} />
+        </RevealSection>
+
+        {/* 11. Transaction log */}
+        <RevealSection id="transactions" className="space-y-3 sm:space-y-4">
           <div className="sm:hidden">
             <FilterBar filters={filters} onChange={setFilters} options={filterOptions} />
           </div>
           <TransactionTable expenses={filteredExpenses} />
-        </div>
+        </RevealSection>
       </main>
 
       <DataStatus lastSync={data?.last_sync} onRefresh={refresh} />

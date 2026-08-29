@@ -55,7 +55,8 @@ export function calculateCumulativeSpending(expenses, cycleStart, cycleEnd, sala
   const dailyMap = {};
   expenses.forEach((e) => {
     if (!e.date) return;
-    dailyMap[e.date] = (dailyMap[e.date] || 0) + (e.amount || 0);
+    const dateKey = e.date.slice(0, 10);
+    dailyMap[dateKey] = (dailyMap[dateKey] || 0) + (e.amount || 0);
   });
   const start = new Date(cycleStart);
   const end = new Date(cycleEnd);
