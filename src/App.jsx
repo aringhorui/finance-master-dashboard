@@ -4,7 +4,6 @@ import { SALARY } from './config';
 import * as calc from './utils/calculations';
 import { generateInsights } from './utils/insights';
 import { checkBudgetAlerts, isEnabled as notificationsEnabled } from './utils/notifications';
-import { decodeAndApplySettings } from './utils/settingsSync';
 
 import { Header } from './components/Header';
 import { FilterBar } from './components/FilterBar';
@@ -44,7 +43,6 @@ function loadSalary() {
 }
 
 function App() {
-  const [settingsImported] = useState(() => decodeAndApplySettings(window.location.hash));
   const { data, loading, error, refresh } = useFinanceData();
   const [salary, setSalaryState] = useState(loadSalary);
 

@@ -1,8 +1,7 @@
 import { useState, useCallback } from 'react';
-import { RefreshCw, ExternalLink, ChevronUp, Bell, BellOff, Link2, Check } from 'lucide-react';
+import { RefreshCw, ExternalLink, ChevronUp, Bell, BellOff } from 'lucide-react';
 import { getRelativeTime, isStale } from '../utils/formatters';
 import { STALE_DATA_MINUTES } from '../config';
-import { copySettingsLink, getSettingsURL } from '../utils/settingsSync';
 
 const SYNC_WORKFLOW_URL = 'https://github.com/aringhorui/finance-master-data/actions/workflows/sync-notion.yml';
 
@@ -23,19 +22,9 @@ function getNotifSupported() {
 export function DataStatus({ lastSync, onRefresh }) {
   const [expanded, setExpanded] = useState(false);
   const [notifOn, setNotifOn] = useState(getNotifState);
-  const [copied, setCopied] = useState(false);
   if (!lastSync) return null;
   const stale = isStale(lastSync, STALE_DATA_MINUTES);
-  const hasSettings = expanded && getSettingsURL();
   const showNotif = expanded && getNotifSupported();
-
-  const handleCopySettings = useCallback(async () => {
-    const ok = await copySettingsLink();
-    if (ok) {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
-  }, []);
 
   const toggleNotif = useCallback(async () => {
     try {
@@ -79,23 +68,12 @@ export function DataStatus({ lastSync, onRefresh }) {
           {showNotif && (
             <button
               onClick={toggleNotif}
-              className={`flex items-center gap-2 w-full px-3.5 py-2.5 text-xs font-medium hover:bg-neutral-800 border-b border-neutral-800 ${
+              className={`flex items-center gap-2 w-full px-3.5 py-2.5 text-xs font-medium hover:bg-neutral-800 ${
                 notifOn ? 'text-emerald-300' : 'text-neutral-400'
               }`}
             >
               {notifOn ? <Bell size={12} /> : <BellOff size={12} />}
               {notifOn ? 'Alerts On' : 'Alerts Off'}
-            </button>
-          )}
-          {hasSettings && (
-            <button
-              onClick={handleCopySettings}
-              className={`flex items-center gap-2 w-full px-3.5 py-2.5 text-xs font-medium hover:bg-neutral-800 ${
-                copied ? 'text-emerald-300' : 'text-neutral-400'
-              }`}
-            >
-              {copied ? <Check size={12} /> : <Link2 size={12} />}
-              {copied ? 'Copied!' : 'Sync Settings'}
             </button>
           )}
         </div>
