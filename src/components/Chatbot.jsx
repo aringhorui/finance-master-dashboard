@@ -215,16 +215,18 @@ export function Chatbot({ expenses, salary }) {
 
   return (
     <>
-      <button
-        onClick={() => setOpen((v) => !v)}
-        className="fixed bottom-4 left-4 z-50 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-orange-500 hover:bg-orange-400 text-black shadow-lg shadow-orange-500/20 flex items-center justify-center transition-all hover:scale-105 active:scale-95"
-        aria-label="Open chat"
-      >
-        {open ? <X size={22} /> : <MessageCircle size={22} />}
-      </button>
+      {!open && (
+        <button
+          onClick={() => setOpen(true)}
+          className="fixed bottom-[4.5rem] sm:bottom-4 left-4 z-50 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-orange-500 hover:bg-orange-400 text-black shadow-lg shadow-orange-500/20 flex items-center justify-center transition-all hover:scale-105 active:scale-95"
+          aria-label="Open chat"
+        >
+          <MessageCircle size={22} />
+        </button>
+      )}
 
       {open && (
-        <div className="fixed bottom-20 sm:bottom-24 left-4 z-50 w-[calc(100vw-2rem)] sm:w-[400px] h-[min(520px,75vh)] flex flex-col rounded-2xl border border-white/[0.08] shadow-2xl shadow-black/50 overflow-hidden"
+        <div className="fixed inset-0 sm:inset-auto sm:bottom-24 sm:left-4 z-50 sm:w-[400px] sm:h-[min(520px,75vh)] flex flex-col sm:rounded-2xl border-0 sm:border border-white/[0.08] shadow-2xl shadow-black/50 overflow-hidden"
           style={{ background: '#111' }}
         >
           <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06] bg-orange-500/5">
@@ -233,13 +235,22 @@ export function Chatbot({ expenses, salary }) {
               <span className="text-sm font-semibold text-neutral-200">Finance Assistant</span>
               <span className="text-[10px] px-1.5 py-0.5 rounded bg-orange-500/15 text-orange-400 font-medium">AI</span>
             </div>
-            <button
-              onClick={() => setShowKeyInput((v) => !v)}
-              className="p-1.5 rounded-lg hover:bg-white/[0.04] text-neutral-500 hover:text-neutral-300 transition-colors"
-              aria-label="Settings"
-            >
-              <Settings size={14} />
-            </button>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setShowKeyInput((v) => !v)}
+                className="p-1.5 rounded-lg hover:bg-white/[0.04] text-neutral-500 hover:text-neutral-300 transition-colors"
+                aria-label="Settings"
+              >
+                <Settings size={14} />
+              </button>
+              <button
+                onClick={() => setOpen(false)}
+                className="p-1.5 rounded-lg hover:bg-white/[0.04] text-neutral-500 hover:text-neutral-300 transition-colors"
+                aria-label="Close chat"
+              >
+                <X size={16} />
+              </button>
+            </div>
           </div>
 
           {showKeyInput && (

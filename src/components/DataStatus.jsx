@@ -11,7 +11,7 @@ export function DataStatus({ lastSync, onRefresh }) {
   const stale = isStale(lastSync, STALE_DATA_MINUTES);
 
   return (
-    <div className="fixed bottom-4 right-4 z-20">
+    <div className="fixed bottom-[4.5rem] sm:bottom-4 right-4 z-20">
       <div className="flex flex-col items-end gap-1.5">
         {expanded && (
           <div className="flex items-center gap-1.5 animate-in fade-in slide-in-from-bottom-2">

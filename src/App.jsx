@@ -105,7 +105,9 @@ function App() {
       <Header salaryCycle={salaryCycle} lastSync={data?.last_sync} loading={loading} onRefresh={refresh} salary={salary} onSalaryChange={setSalary} />
 
       <main className="max-w-[1400px] mx-auto px-3 sm:px-6 py-4 sm:py-5 space-y-3 sm:space-y-4">
-        <FilterBar filters={filters} onChange={setFilters} options={filterOptions} />
+        <div className="hidden sm:block">
+          <FilterBar filters={filters} onChange={setFilters} options={filterOptions} />
+        </div>
 
         <div id="kpis">
           <KPIGrid
@@ -144,7 +146,10 @@ function App() {
         </div>
 
         <Insights insights={insights} />
-        <div id="transactions">
+        <div id="transactions" className="space-y-3 sm:space-y-4">
+          <div className="sm:hidden">
+            <FilterBar filters={filters} onChange={setFilters} options={filterOptions} />
+          </div>
           <TransactionTable expenses={filteredExpenses} />
         </div>
       </main>
