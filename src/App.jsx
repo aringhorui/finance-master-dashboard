@@ -1,13 +1,18 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useFinanceData } from './hooks/useFinanceData';
 import { SALARY } from './config';
 import * as calc from './utils/calculations';
 import { generateInsights } from './utils/insights';
+import { checkBudgetAlerts, isEnabled as notificationsEnabled } from './utils/notifications';
+import { decodeAndApplySettings } from './utils/settingsSync';
 
 import { Header } from './components/Header';
 import { FilterBar } from './components/FilterBar';
 import { KPIGrid } from './components/KPIGrid';
 import { FinancialHealth } from './components/FinancialHealth';
+import { WantVsNeed } from './components/WantVsNeed';
+import { TimeOfDay } from './components/TimeOfDay';
+import { SpendingStreaks } from './components/SpendingStreaks';
 import { SunburstChart } from './components/SunburstChart';
 import { SpendingHeatmap } from './components/SpendingHeatmap';
 import { CategoryAnalysis } from './components/CategoryAnalysis';
@@ -22,6 +27,7 @@ import { PaymentMethodBreakdown } from './components/PaymentMethodBreakdown';
 import { BankAccountBreakdown } from './components/BankAccountBreakdown';
 import { WeekdaySpending } from './components/WeekdaySpending';
 import { TransactionTable } from './components/TransactionTable';
+import { ExportData } from './components/ExportData';
 import { Insights } from './components/Insights';
 import { DataStatus } from './components/DataStatus';
 import { Chatbot } from './components/Chatbot';
@@ -38,6 +44,7 @@ function loadSalary() {
 }
 
 function App() {
+  const [settingsImported] = useState(() => decodeAndApplySettings(window.location.hash));
   const { data, loading, error, refresh } = useFinanceData();
   const [salary, setSalaryState] = useState(loadSalary);
 
@@ -103,6 +110,12 @@ function App() {
   const topExpenses = useMemo(() => calc.getTopExpenses(filteredExpenses, 10), [filteredExpenses]);
   const insights = useMemo(() => generateInsights(filteredExpenses, salaryCycle, salary), [filteredExpenses, salaryCycle, salary]);
 
+  useEffect(() => {
+    if (filteredExpenses.length > 0 && salary > 0 && notificationsEnabled()) {
+      checkBudgetAlerts(filteredExpenses, salary);
+    }
+  }, [filteredExpenses, salary]);
+
   if (error && !data) return <ErrorState message={error} onRetry={refresh} />;
   if (loading && !data) return <LoadingSkeleton />;
 
@@ -134,13 +147,19 @@ function App() {
           <FinancialHealth salary={salary} spent={totalSpent} expenses={filteredExpenses} salaryCycle={salaryCycle} />
         </RevealSection>
 
-        {/* 3. Behavioral insights — actionable spending patterns */}
+        {/* 3. Want vs Need + Spending Streaks */}
+        <RevealSection className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
+          <WantVsNeed expenses={filteredExpenses} />
+          <SpendingStreaks expenses={filteredExpenses} salaryCycle={salaryCycle} />
+        </RevealSection>
+
+        {/* 4. Behavioral insights — actionable spending patterns */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
           <SmallPurchases expenses={filteredExpenses} salaryCycle={salaryCycle} />
           <HabitTracker expenses={filteredExpenses} salaryCycle={salaryCycle} />
         </div>
 
-        {/* 4. Pace & Trend — how spending tracks over time */}
+        {/* 5. Pace & Trend — how spending tracks over time */}
         <RevealSection className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
           <BudgetPace data={cumulativeSpending} salary={salary} />
           <SpendingTrend data={dailySpending} />
@@ -160,6 +179,11 @@ function App() {
         <RevealSection id="categories" className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
           <CategoryAnalysis categories={categorySpending} subCategories={subCategorySpending} totalSpent={totalSpent} />
           <WeekdaySpending data={weekdaySpending} />
+        </RevealSection>
+
+        {/* Time of Day analysis */}
+        <RevealSection>
+          <TimeOfDay expenses={filteredExpenses} />
         </RevealSection>
 
         {/* 8. Hierarchy visualization */}
@@ -183,6 +207,10 @@ function App() {
         <RevealSection id="transactions" className="space-y-3 sm:space-y-4">
           <div className="sm:hidden">
             <FilterBar filters={filters} onChange={setFilters} options={filterOptions} />
+          </div>
+          <div className="flex items-center justify-between">
+            <h2 className="section-title text-sm font-semibold text-neutral-300">Transactions</h2>
+            <ExportData expenses={filteredExpenses} salary={salary} salaryCycle={salaryCycle} />
           </div>
           <TransactionTable expenses={filteredExpenses} />
         </RevealSection>

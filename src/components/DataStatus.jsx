@@ -1,14 +1,36 @@
 import { useState } from 'react';
-import { RefreshCw, ExternalLink, ChevronUp } from 'lucide-react';
+import { RefreshCw, ExternalLink, ChevronUp, Bell, BellOff, Link2, Check } from 'lucide-react';
 import { getRelativeTime, isStale } from '../utils/formatters';
 import { STALE_DATA_MINUTES } from '../config';
+import { isSupported as notifSupported, isEnabled as notifEnabled, requestPermission, disable as disableNotif } from '../utils/notifications';
+import { copySettingsLink, getSettingsURL } from '../utils/settingsSync';
 
 const SYNC_WORKFLOW_URL = 'https://github.com/aringhorui/finance-master-data/actions/workflows/sync-notion.yml';
 
 export function DataStatus({ lastSync, onRefresh }) {
   const [expanded, setExpanded] = useState(false);
+  const [notifOn, setNotifOn] = useState(notifEnabled);
+  const [copied, setCopied] = useState(false);
   if (!lastSync) return null;
   const stale = isStale(lastSync, STALE_DATA_MINUTES);
+
+  const handleCopySettings = async () => {
+    const ok = await copySettingsLink();
+    if (ok) {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const toggleNotif = async () => {
+    if (notifOn()) {
+      disableNotif();
+      setNotifOn(() => notifEnabled);
+    } else {
+      await requestPermission();
+      setNotifOn(() => notifEnabled);
+    }
+  };
 
   return (
     <div className="fixed bottom-[4.5rem] sm:bottom-4 right-4 z-20">
@@ -31,6 +53,32 @@ export function DataStatus({ lastSync, onRefresh }) {
               <ExternalLink size={12} />
               Sync Now
             </a>
+            {notifSupported() && (
+              <button
+                onClick={toggleNotif}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium border backdrop-blur-xl shadow-lg transition-colors ${
+                  notifOn()
+                    ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-300 hover:bg-emerald-500/20'
+                    : 'bg-neutral-900/90 border-white/[0.08] text-neutral-400 hover:text-neutral-200'
+                }`}
+              >
+                {notifOn() ? <Bell size={12} /> : <BellOff size={12} />}
+                {notifOn() ? 'Alerts On' : 'Alerts Off'}
+              </button>
+            )}
+            {getSettingsURL() && (
+              <button
+                onClick={handleCopySettings}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium border backdrop-blur-xl shadow-lg transition-colors ${
+                  copied
+                    ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-300'
+                    : 'bg-neutral-900/90 border-white/[0.08] text-neutral-400 hover:text-neutral-200'
+                }`}
+              >
+                {copied ? <Check size={12} /> : <Link2 size={12} />}
+                {copied ? 'Copied!' : 'Sync Settings'}
+              </button>
+            )}
           </div>
         )}
         <button
