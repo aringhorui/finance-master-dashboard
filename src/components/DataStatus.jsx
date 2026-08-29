@@ -1,99 +1,117 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { RefreshCw, ExternalLink, ChevronUp, Bell, BellOff, Link2, Check } from 'lucide-react';
 import { getRelativeTime, isStale } from '../utils/formatters';
 import { STALE_DATA_MINUTES } from '../config';
-import { isSupported as notifSupported, isEnabled as notifEnabled, requestPermission, disable as disableNotif } from '../utils/notifications';
 import { copySettingsLink, getSettingsURL } from '../utils/settingsSync';
 
 const SYNC_WORKFLOW_URL = 'https://github.com/aringhorui/finance-master-data/actions/workflows/sync-notion.yml';
 
+function getNotifState() {
+  try {
+    return typeof Notification !== 'undefined'
+      && Notification.permission === 'granted'
+      && localStorage.getItem('fm_notifications_enabled') === 'true';
+  } catch { return false; }
+}
+
+function getNotifSupported() {
+  try {
+    return typeof Notification !== 'undefined' && 'serviceWorker' in navigator;
+  } catch { return false; }
+}
+
 export function DataStatus({ lastSync, onRefresh }) {
   const [expanded, setExpanded] = useState(false);
-  const [notifOn, setNotifOn] = useState(notifEnabled);
+  const [notifOn, setNotifOn] = useState(getNotifState);
   const [copied, setCopied] = useState(false);
   if (!lastSync) return null;
   const stale = isStale(lastSync, STALE_DATA_MINUTES);
+  const hasSettings = expanded && getSettingsURL();
+  const showNotif = expanded && getNotifSupported();
 
-  const handleCopySettings = async () => {
+  const handleCopySettings = useCallback(async () => {
     const ok = await copySettingsLink();
     if (ok) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
-  };
+  }, []);
 
-  const toggleNotif = async () => {
-    if (notifOn()) {
-      disableNotif();
-      setNotifOn(() => notifEnabled);
-    } else {
-      await requestPermission();
-      setNotifOn(() => notifEnabled);
+  const toggleNotif = useCallback(async () => {
+    try {
+      if (getNotifState()) {
+        localStorage.setItem('fm_notifications_enabled', 'false');
+      } else {
+        const result = await Notification.requestPermission();
+        localStorage.setItem('fm_notifications_enabled', String(result === 'granted'));
+      }
+      setNotifOn(getNotifState());
+    } catch {
+      setNotifOn(false);
     }
-  };
+  }, []);
+
+  const handleSyncNow = useCallback(() => {
+    window.open(SYNC_WORKFLOW_URL, '_blank');
+  }, []);
 
   return (
     <div className="fixed bottom-[4.5rem] sm:bottom-4 right-4 z-20">
-      <div className="flex flex-col items-end gap-1.5">
-        {expanded && (
-          <div className="flex flex-col sm:flex-row items-end sm:items-center gap-1.5">
-            <button
-              onClick={onRefresh}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium bg-neutral-900 border border-white/[0.08] text-neutral-300 hover:text-orange-300 hover:border-orange-500/20 shadow-lg transition-colors"
-            >
-              <RefreshCw size={12} />
-              Refresh Data
-            </button>
-            <a
-              href={SYNC_WORKFLOW_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium bg-orange-950 border border-orange-500/20 text-orange-300 hover:bg-orange-900 shadow-lg transition-colors"
-            >
-              <ExternalLink size={12} />
-              Sync Now
-            </a>
-            {notifSupported() && (
-              <button
-                onClick={toggleNotif}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium border shadow-lg transition-colors ${
-                  notifOn()
-                    ? 'bg-emerald-950 border-emerald-500/20 text-emerald-300 hover:bg-emerald-900'
-                    : 'bg-neutral-900 border-white/[0.08] text-neutral-400 hover:text-neutral-200'
-                }`}
-              >
-                {notifOn() ? <Bell size={12} /> : <BellOff size={12} />}
-                {notifOn() ? 'Alerts On' : 'Alerts Off'}
-              </button>
-            )}
-            {getSettingsURL() && (
-              <button
-                onClick={handleCopySettings}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium border shadow-lg transition-colors ${
-                  copied
-                    ? 'bg-emerald-950 border-emerald-500/20 text-emerald-300'
-                    : 'bg-neutral-900 border-white/[0.08] text-neutral-400 hover:text-neutral-200'
-                }`}
-              >
-                {copied ? <Check size={12} /> : <Link2 size={12} />}
-                {copied ? 'Copied!' : 'Sync Settings'}
-              </button>
-            )}
-          </div>
-        )}
-        <button
-          onClick={() => setExpanded((v) => !v)}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs border shadow-lg transition-colors ${
-            stale
-              ? 'bg-orange-950 border-orange-800/30 text-orange-300'
-              : 'bg-neutral-900 border-white/[0.06] text-neutral-400'
-          }`}
+      {expanded && (
+        <div
+          className="absolute bottom-full right-0 mb-2 w-44 rounded-xl border border-neutral-800 bg-neutral-900 overflow-hidden"
+          style={{ WebkitTransform: 'translateZ(0)' }}
         >
-          <span className={`w-1.5 h-1.5 rounded-full ${stale ? 'bg-orange-400 animate-pulse' : 'bg-emerald-400'}`} />
-          {stale ? `Data may be outdated (${getRelativeTime(lastSync)})` : `Synced ${getRelativeTime(lastSync)}`}
-          <ChevronUp size={12} className={`transition-transform ${expanded ? '' : 'rotate-180'}`} />
-        </button>
-      </div>
+          <button
+            onClick={onRefresh}
+            className="flex items-center gap-2 w-full px-3.5 py-2.5 text-xs font-medium text-neutral-300 hover:bg-neutral-800 border-b border-neutral-800"
+          >
+            <RefreshCw size={12} />
+            Refresh Data
+          </button>
+          <button
+            onClick={handleSyncNow}
+            className="flex items-center gap-2 w-full px-3.5 py-2.5 text-xs font-medium text-orange-300 hover:bg-neutral-800 border-b border-neutral-800"
+          >
+            <ExternalLink size={12} />
+            Sync Now
+          </button>
+          {showNotif && (
+            <button
+              onClick={toggleNotif}
+              className={`flex items-center gap-2 w-full px-3.5 py-2.5 text-xs font-medium hover:bg-neutral-800 border-b border-neutral-800 ${
+                notifOn ? 'text-emerald-300' : 'text-neutral-400'
+              }`}
+            >
+              {notifOn ? <Bell size={12} /> : <BellOff size={12} />}
+              {notifOn ? 'Alerts On' : 'Alerts Off'}
+            </button>
+          )}
+          {hasSettings && (
+            <button
+              onClick={handleCopySettings}
+              className={`flex items-center gap-2 w-full px-3.5 py-2.5 text-xs font-medium hover:bg-neutral-800 ${
+                copied ? 'text-emerald-300' : 'text-neutral-400'
+              }`}
+            >
+              {copied ? <Check size={12} /> : <Link2 size={12} />}
+              {copied ? 'Copied!' : 'Sync Settings'}
+            </button>
+          )}
+        </div>
+      )}
+      <button
+        onClick={() => setExpanded((v) => !v)}
+        className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs border ${
+          stale
+            ? 'bg-orange-950 border-orange-800/30 text-orange-300'
+            : 'bg-neutral-900 border-neutral-800 text-neutral-400'
+        }`}
+      >
+        <span className={`w-1.5 h-1.5 rounded-full ${stale ? 'bg-orange-400 animate-pulse' : 'bg-emerald-400'}`} />
+        {stale ? `Data may be outdated (${getRelativeTime(lastSync)})` : `Synced ${getRelativeTime(lastSync)}`}
+        <ChevronUp size={12} className={`transition-transform ${expanded ? '' : 'rotate-180'}`} />
+      </button>
     </div>
   );
 }
