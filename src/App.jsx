@@ -15,7 +15,6 @@ import { SpendingStreaks } from './components/SpendingStreaks';
 import { SunburstChart } from './components/SunburstChart';
 import { SpendingHeatmap } from './components/SpendingHeatmap';
 import { CategoryAnalysis } from './components/CategoryAnalysis';
-import { SubcategoryBudget } from './components/SubcategoryBudget';
 import { SmallPurchases } from './components/SmallPurchases';
 import { HabitTracker } from './components/HabitTracker';
 import { RevealSection } from './components/RevealSection';
@@ -161,11 +160,6 @@ function App() {
         <RevealSection className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
           <BudgetPace data={cumulativeSpending} salary={salary} />
           <SpendingTrend data={dailySpending} />
-        </RevealSection>
-
-        {/* 5. Budget tracking */}
-        <RevealSection id="budgets">
-          <SubcategoryBudget subCategories={subCategorySpending} expenses={filteredExpenses} />
         </RevealSection>
 
         {/* 6. Spending heatmap */}

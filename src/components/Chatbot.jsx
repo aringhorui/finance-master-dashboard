@@ -2,30 +2,10 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { MessageCircle, X, Send, Bot, User, AlertCircle, Settings } from 'lucide-react';
 import { GEMINI_API_KEY } from '../config';
 import { formatCurrency } from '../utils/formatters';
-import { getSubcategoryBudgets } from './SubcategoryBudget';
 
 function buildContext(expenses, salary) {
   const totalSpent = expenses.reduce((s, e) => s + (Number(e.amount) || 0), 0);
   const remaining = salary - totalSpent;
-
-  const budgets = getSubcategoryBudgets();
-  const subCatMap = {};
-  expenses.forEach((e) => {
-    const sub = e.sub_category || 'Other';
-    subCatMap[sub] = (subCatMap[sub] || 0) + (Number(e.amount) || 0);
-  });
-
-  let budgetSection = '';
-  const budgetEntries = Object.entries(budgets);
-  if (budgetEntries.length > 0) {
-    const lines = budgetEntries.map(([name, limit]) => {
-      const spent = subCatMap[name] || 0;
-      const pct = limit > 0 ? ((spent / limit) * 100).toFixed(0) : 0;
-      const status = spent > limit ? 'OVER BUDGET' : spent > limit * 0.8 ? 'WARNING' : 'OK';
-      return `  ${name}: spent ${formatCurrency(spent)} / budget ${formatCurrency(limit)} (${pct}%) [${status}]`;
-    });
-    budgetSection = `\n\nSubcategory Budgets:\n${lines.join('\n')}`;
-  }
 
   const txnJson = JSON.stringify(
     expenses.map((e) => ({
@@ -40,7 +20,7 @@ function buildContext(expenses, salary) {
 - Monthly Salary: ${formatCurrency(salary)}
 - Total Spent: ${formatCurrency(totalSpent)}
 - Remaining: ${formatCurrency(remaining)}
-- ${expenses.length} transactions${budgetSection}
+- ${expenses.length} transactions
 
 Here is the FULL transaction data as JSON:
 ${txnJson}
@@ -50,7 +30,6 @@ Rules for your responses:
 - Use numbered lists for breakdowns, bold (**text**) for key amounts and categories
 - Keep responses under 150 words
 - Focus on spending patterns, savings opportunities, and actionable insights
-- If the user has set subcategory budgets, reference them when relevant — highlight items over budget or near their limit
 - Be conversational but data-driven`;
 }
 

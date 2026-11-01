@@ -1,11 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
-import { BarChart3, Target, Wallet, Receipt, TrendingDown } from 'lucide-react';
+import { BarChart3, Wallet, Receipt, TrendingDown } from 'lucide-react';
 
 const SECTIONS = [
   { id: 'kpis', label: 'Overview', icon: BarChart3 },
   { id: 'health', label: 'Health', icon: TrendingDown },
   { id: 'categories', label: 'Spend', icon: Wallet },
-  { id: 'budgets', label: 'Budgets', icon: Target },
   { id: 'transactions', label: 'Txns', icon: Receipt },
 ];
 
